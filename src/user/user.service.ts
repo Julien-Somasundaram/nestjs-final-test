@@ -10,7 +10,7 @@ export class UserService {
 
 
     async addUser(email: string): Promise<User> {
-        const userExists = await this.prisma.user.findUnique( { where: { email } });
+        const userExists = await this.prisma.user.findUnique({ where: { email } });
         if (userExists) {
             throw new HttpException('User already exists', 409);
         }
@@ -18,14 +18,15 @@ export class UserService {
         if (!response) {
             throw new Error('Failed to save user');
         }
-        return response;
+        return this.prisma.user.create({ data: { email } });
     }
 
     async getUsers(): Promise<User[]> {
         return this.prisma.user.findMany();
     }
-    async getUser(email:string): Promise<User> {
-        return this.prisma.user.findUnique({where:{email}});
+
+    async getUser(email: string): Promise<User | null> {
+        return this.prisma.user.findUnique({ where: { email } });
     }
 
     async resetData(): Promise<void> {

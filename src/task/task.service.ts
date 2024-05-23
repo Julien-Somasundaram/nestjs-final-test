@@ -2,7 +2,6 @@ import { Injectable, NotImplementedException } from '@nestjs/common';
 import { PrismaService } from './../../prisma/prisma.service';
 import { Body, Controller, Get, Post,HttpException,HttpStatus} from '@nestjs/common';
 import { Task, Prisma } from '@prisma/client';
-import { Repository } from 'typeorm';
 
 @Injectable()
 export class TaskService {
@@ -28,12 +27,12 @@ export class TaskService {
         return response;
     }
 
-    getTaskByName(name: string): Promise<unknown> {
-        throw new NotImplementedException();
+    async getTaskByName(name: string): Promise<Task | null> {
+        return this.prisma.task.findFirst({ where: { name } });
     }
 
-    getUserTasks(userId: string): Promise<Task[]> {
-        return this.prisma.task.findMany({ where: { userId } });
+    async getUserTasks(userId: string): Promise<Task[]> {
+        return this.prisma.task.findMany({ where: { userId: userId.toString() } });  
     }
 
     async resetData(): Promise<void> {

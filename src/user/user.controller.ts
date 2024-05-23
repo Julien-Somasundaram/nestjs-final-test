@@ -1,39 +1,30 @@
-import { Body, Controller, Get, Post,HttpException,HttpStatus, HttpCode, Param} from '@nestjs/common';
+import { Controller, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
 import { UserService } from './user.service';
-import {User, Prisma} from '@prisma/client';
+import { User } from '@prisma/client';
 
-
-@Controller()
+@Controller('user')
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
-
-    @Get()
-    getUsers():  Promise<User[]>{
-        return this.userService.getUsers();
-    }
     @Post()
-    @HttpCode(201)
-    addUser(@Body() userData:Prisma.UserCreateInput): Promise<User>{
-        console.log(userData);
-        if (!this.checkUsermail(userData.email)){
-            throw new HttpException('Invalid email',HttpStatus.BAD_REQUEST);
+    async createUser(@Body() body: { email: string }): Promise<{ status: number; user: User }> {
+        if (!this.isValidEmail(body.email)) {
+            throw new HttpException('Invalid email', HttpStatus.BAD_REQUEST);
         }
-        
-        return this.userService.addUser(userData.email);
-    
+
+        try {
+            const user = await this.userService.addUser(body.email);
+            return { status: HttpStatus.CREATED, user };
+        } catch (error) {
+            if (error.status === HttpStatus.CONFLICT) {
+                throw new HttpException('User already exists', HttpStatus.CONFLICT);
+            }
+            throw new HttpException('Internal server error', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
-    @Get("/:email")
-    @HttpCode(201)
-    getUser(@Param('email') email:string): Promise<User>{
-        return this.userService.getUser(email);
-    
-    }
 
-
-
-    private checkUsermail(email: string): boolean {
-        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return re.test(email);
+    private isValidEmail(email: string): boolean {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
     }
 }
