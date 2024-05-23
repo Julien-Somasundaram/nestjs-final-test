@@ -1,25 +1,40 @@
-import { Body, Controller, Get, Post,Param } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, HttpException, HttpStatus } from '@nestjs/common';
 import { TaskService } from './task.service';
-import { Task, Prisma } from '@prisma/client';
+import { Task } from '@prisma/client';
 
-@Controller()
+@Controller('task')
 export class TaskController {
     constructor(private readonly taskService: TaskService) {}
 
     @Post()
-    addTask(@Body() taskData: Prisma.TaskCreateInput): Promise<Task> {
-        return this.taskService.addTask(taskData);
+    async addTask(@Body() taskData: { name: string, userId: string, priority: string }): Promise<Task> {
+        if (!this.isValidTask(taskData)) {
+            throw new HttpException('Invalid task data', HttpStatus.BAD_REQUEST);
+        }
+
+        const task = await this.taskService.addTask(
+            taskData.name,
+            taskData.userId,
+            parseInt(taskData.priority),
+        );
+
+        return task;
     }
+
     @Get('user/:userId')
-    getUserTasks(@Param('userId') userId: number): Promise<Task[]> {
-        if (!userId) {
-            throw new Error('Invalid userId');
+    async getUserTasks(@Param('userId') userId: string): Promise<Task[]> {
+        if (!userId || isNaN(Number(userId)) || Number(userId) <= 0) {
+            throw new HttpException('Invalid userId', HttpStatus.BAD_REQUEST);
         }
-        if (userId<0) {
-            throw new Error('Invalid userId');
-        }
-        return this.taskService.getUserTasks(userId.toString());
+        return this.taskService.getUserTasks(userId);
     }
 
-}
+    private isValidTask(taskData: { name: string, userId: string, priority: string }): boolean {
+        const { name, userId, priority } = taskData;
+        const isNameValid = typeof name === 'string' && name.trim().length > 0;
+        const isUserIdValid = typeof userId === 'string' && userId.trim().length > 0 && !isNaN(Number(userId));
+        const isPriorityValid = !isNaN(parseInt(priority)) && parseInt(priority) > 0;
 
+        return isNameValid && isUserIdValid && isPriorityValid;
+    }
+}
