@@ -5,11 +5,11 @@ import { Repository } from 'typeorm';
 
 @Injectable()
 export class TaskService {
-    constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService) { }
 
 
-    addTask(data: Prisma.TaskCreateInput): Promise<Task> {
-        return this.prisma.task.create({ data });
+    addTask(name: string, userId: string, priority: number): Promise<Task> {
+        return this.prisma.task.create({ data: { name, userId, priority }});
     }
 
     getTaskByName(name: string): Promise<unknown> {
