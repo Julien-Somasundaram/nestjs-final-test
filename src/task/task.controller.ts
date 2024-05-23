@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, HttpException, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Get, Post,Param } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { Task } from '@prisma/client';
 
@@ -7,24 +7,13 @@ export class TaskController {
     constructor(private readonly taskService: TaskService) {}
 
     @Post()
-    async addTask(@Body() taskData: { name: string, userId: string, priority: string }): Promise<Task> {
-        if (!this.isValidTask(taskData)) {
-            throw new HttpException('Invalid task data', HttpStatus.BAD_REQUEST);
-        }
-
-        const task = await this.taskService.addTask(
-            taskData.name,
-            taskData.userId,
-            parseInt(taskData.priority),
-        );
-
-        return task;
+    addTask(@Body() taskData: Prisma.TaskCreateInput): Promise<Task> {
+        return this.taskService.addTask(taskData);
     }
-
     @Get('user/:userId')
-    async getUserTasks(@Param('userId') userId: string): Promise<Task[]> {
-        if (!userId || isNaN(Number(userId)) || Number(userId) <= 0) {
-            throw new HttpException('Invalid userId', HttpStatus.BAD_REQUEST);
+    getUserTasks(@Param('userId') userId: number): Promise<Task[]> {
+        if (!userId) {
+            throw new Error('Invalid userId');
         }
         return this.taskService.getUserTasks(userId);
     }
