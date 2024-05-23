@@ -10,14 +10,16 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int   @id @default(autoincrement())
   email     String   @unique
   name      String?
 }
 
 model Task {
-  id        Int      @id @default(autoincrement())
+  id        Int      @id @default(cuid())
   name      String  
   userId    String
   priority  Int
+
+  @@unique([name, userId])
 }

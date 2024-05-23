@@ -1,4 +1,4 @@
-import { Injectable, NotImplementedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Body, Controller, Get, Post,HttpException,HttpStatus} from '@nestjs/common';
 import { PrismaService } from './../../prisma/prisma.service';
 import { User, Prisma } from '@prisma/client';
@@ -6,14 +6,13 @@ import { User, Prisma } from '@prisma/client';
 
 @Injectable()
 export class UserService {
-    constructor(
-        private prisma: PrismaService,
-    ) {}
+    constructor(private prisma: PrismaService) { }
+
 
     async addUser(email: string): Promise<User> {
         const userExists = await this.prisma.user.findUnique( { where: { email } });
         if (userExists) {
-            throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+            throw new HttpException('User already exists', 409);
         }
         const response = await this.prisma.user.create({ data: { email } });    
         if (!response) {
@@ -29,7 +28,9 @@ export class UserService {
         return this.prisma.user.findUnique({where:{email}});
     }
 
-    resetData(): Promise<void> {
-        throw new NotImplementedException();
+    async resetData(): Promise<void> {
+        await this.prisma.user.deleteMany();
+        
+
     }
 }
