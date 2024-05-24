@@ -22,4 +22,15 @@ export class TaskService {
     resetData(): Promise<void> {
         throw new NotImplementedException();
     }
+<<<<<<< HEAD
+=======
+
+    getUserTasks(userId: string): Promise<Task[]> {
+        return this.prisma.task.findMany({ where: { userId } });
+    }
+
+    resetData(): Promise<void> {
+        throw new NotImplementedException();
+    }
+>>>>>>> parent of 34cf3cc (chui faitgué la)
 }
