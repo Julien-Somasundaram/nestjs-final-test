@@ -21,4 +21,8 @@ export class TaskController {
         }
         return this.taskService.getUserTasks(userId.toString());
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> parent of 34cf3cc (chui faitgué la)
 }
