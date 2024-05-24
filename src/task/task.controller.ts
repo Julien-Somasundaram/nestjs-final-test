@@ -1,28 +1,58 @@
 import { Body, Controller, Get, Post,Param, HttpCode } from '@nestjs/common';
 import { TaskService } from './task.service';
-import { Task } from '@prisma/client';
+import { Task, Prisma } from '@prisma/client';
+import { parse } from 'path';
 
 @Controller('task')
 export class TaskController {
     constructor(private readonly taskService: TaskService) {}
 
     @Post()
-    addTask(@Body() taskData: Prisma.TaskCreateInput): Promise<Task> {
-        return this.taskService.addTask(taskData.name, taskData.userId, taskData.priority);
+    @HttpCode(HttpStatus.CREATED)
+    addTask(@Body() taskData: { name: string, userId: string, priority: string }): Promise<Task> {
+        if (!this.isValidname(taskData.name)) {
+            throw new HttpException('Invalid task name', HttpStatus.BAD_REQUEST);
+        }
+        if (!this.isValiduserId(parseInt(taskData.userId))) {
+            throw new HttpException('Invalid userId', HttpStatus.BAD_REQUEST);
+        }
+        if (!this.isValidpriority(parseInt(taskData.priority))) {
+            throw new HttpException('Invalid priority', HttpStatus.BAD_REQUEST);
+        }
+        return this.taskService.addTask(taskData.name, parseInt(taskData.userId), parseInt(taskData.priority));
     }
     @Get('user/:userId')
-    @HttpCode(201)
-    getUserTasks(@Param('userId') userId: number): Promise<Task[]> {
-        if (!userId) {
-            throw new Error('Invalid userId');
+    @HttpCode(HttpStatus.OK)
+    getUserTasks(@Param('userId') userId: string): Promise<Task[]> {
+        if (!this.isValiduserId(parseInt(userId))) {
+            throw new HttpException('Invalid userId', HttpStatus.BAD_REQUEST);
         }
-        if (userId<0) {
-            throw new Error('Invalid userId');
-        }
-        return this.taskService.getUserTasks(userId.toString());
+        return this.taskService.getUserTasks(parseInt(userId));
     }
-<<<<<<< HEAD
-=======
 
->>>>>>> parent of 34cf3cc (chui faitgué la)
+    @Get('/:name')
+    @HttpCode(HttpStatus.OK)
+    getTaskByName(@Param('name') name: string): Promise<Task> {
+        if (!this.isValidname(name)) {
+            throw new HttpException('Invalid task name', HttpStatus.BAD_REQUEST);
+        }
+        return this.taskService.getTaskByName(name);
+    }
+
+    private isValidname( name: string): boolean {
+        const isNameValid = typeof name === 'string' && name.trim().length > 0;
+
+        return isNameValid;
+    }
+    private isValiduserId(userId: number): boolean {
+        const isUserIdValid =  !isNaN(userId) && userId > 0;
+        return isUserIdValid;
+    }
+    private isValidpriority( priority: number ): boolean {
+        const isPriorityValid = !isNaN(+priority) && +priority > 0;
+
+        return isPriorityValid;
+    }
+
 }
+

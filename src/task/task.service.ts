@@ -7,30 +7,24 @@ export class TaskService {
     constructor(private prisma: PrismaService) { }
 
 
-    addTask(name: string, userId: string, priority: number): Promise<Task> {
-        return this.prisma.task.create({ data: { name, userId, priority }});
+    async addTask(name: string, userId: number, priority: number): Promise<Task> {
+
+        const response = this.prisma.task.create({ data: { name, userId, priority }});
+        if (!response) {
+            throw new HttpException('Failed to save task', HttpStatus.BAD_REQUEST);
+        }
+        return response;
     }
 
-    async getTaskByName(name: string): Promise<Task | null> {
+    getTaskByName(name: string): Promise<Task> {
         return this.prisma.task.findFirst({ where: { name } });
     }
 
-    async getUserTasks(userId: string): Promise<Task[]> {
-        return this.prisma.task.findMany({ where: { userId: userId.toString() } });  
-    }
-
-    resetData(): Promise<void> {
-        throw new NotImplementedException();
-    }
-<<<<<<< HEAD
-=======
-
-    getUserTasks(userId: string): Promise<Task[]> {
+    getUserTasks(userId: number): Promise<Task[]> {
         return this.prisma.task.findMany({ where: { userId } });
     }
 
     resetData(): Promise<void> {
         throw new NotImplementedException();
     }
->>>>>>> parent of 34cf3cc (chui faitgué la)
 }

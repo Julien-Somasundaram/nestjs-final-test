@@ -16,14 +16,8 @@ model User {
 
 model Task {
   id        Int      @id @default(autoincrement())
-<<<<<<< HEAD
-<<<<<<< HEAD
   name      String
-=======
-=======
->>>>>>> parent of 34cf3cc (chui faitgué la)
-  name      String  
->>>>>>> parent of 34cf3cc (chui faitgué la)
-  userId    String
+  userId    Int 
   priority  Int
+
 }
