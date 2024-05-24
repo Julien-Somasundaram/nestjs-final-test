@@ -1,32 +1,42 @@
 import { Body, Controller, Get, Post,HttpException,HttpStatus, HttpCode, Param} from '@nestjs/common';
 import { TaskService } from './task.service';
 import { Task, Prisma } from '@prisma/client';
+import { parse } from 'path';
 
 @Controller()
 export class TaskController {
     constructor(private readonly taskService: TaskService) {}
 
     @Post()
-    @HttpCode(201)
-    addTask(@Body() taskData: Prisma.TaskCreateInput): Promise<Task> {
+    @HttpCode(HttpStatus.CREATED)
+    addTask(@Body() taskData: { name: string, userId: string, priority: string }): Promise<Task> {
         if (!this.isValidname(taskData.name)) {
             throw new HttpException('Invalid task name', HttpStatus.BAD_REQUEST);
         }
-        if (!this.isValiduserId(taskData.userId)) {
+        if (!this.isValiduserId(parseInt(taskData.userId))) {
             throw new HttpException('Invalid userId', HttpStatus.BAD_REQUEST);
         }
-        if (!this.isValidpriority(taskData.priority)) {
+        if (!this.isValidpriority(parseInt(taskData.priority))) {
             throw new HttpException('Invalid priority', HttpStatus.BAD_REQUEST);
         }
-        return this.taskService.addTask(taskData.name, taskData.userId, taskData.priority);
+        return this.taskService.addTask(taskData.name, parseInt(taskData.userId), parseInt(taskData.priority));
     }
     @Get('user/:userId')
-    @HttpCode(201)
+    @HttpCode(HttpStatus.OK)
     getUserTasks(@Param('userId') userId: string): Promise<Task[]> {
-        if (!this.isValiduserId(userId)) {
+        if (!this.isValiduserId(parseInt(userId))) {
             throw new HttpException('Invalid userId', HttpStatus.BAD_REQUEST);
         }
-        return this.taskService.getUserTasks(userId);
+        return this.taskService.getUserTasks(parseInt(userId));
+    }
+
+    @Get('/:name')
+    @HttpCode(HttpStatus.OK)
+    getTaskByName(@Param('name') name: string): Promise<Task> {
+        if (!this.isValidname(name)) {
+            throw new HttpException('Invalid task name', HttpStatus.BAD_REQUEST);
+        }
+        return this.taskService.getTaskByName(name);
     }
 
     private isValidname( name: string): boolean {
@@ -34,12 +44,12 @@ export class TaskController {
 
         return isNameValid;
     }
-    private isValiduserId(userId: String): boolean {
-        const isUserIdValid = typeof userId === 'string' && userId.trim().length > 0;
+    private isValiduserId(userId: number): boolean {
+        const isUserIdValid =  !isNaN(userId) && userId > 0;
         return isUserIdValid;
     }
     private isValidpriority( priority: number ): boolean {
-        const isPriorityValid = !isNaN(priority) && priority > 0;
+        const isPriorityValid = !isNaN(+priority) && +priority > 0;
 
         return isPriorityValid;
     }

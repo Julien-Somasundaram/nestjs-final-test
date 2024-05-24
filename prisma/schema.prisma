@@ -16,10 +16,9 @@ model User {
 }
 
 model Task {
-  id        Int      @id @default(cuid())
-  name      String  
-  userId    String
+  id        Int      @id @default(autoincrement())
+  name      String
+  userId    Int 
   priority  Int
 
-  @@unique([name, userId])
 }
